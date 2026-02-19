@@ -1,26 +1,112 @@
 @import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@700;800;900&display=swap");
 
+/* ── GolazoZone 2026 Design System ─────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Brand colors */
+  --primary: #1A3C6E;
+  --primary-hover: #15316080;
+  --accent: #C9A84C;
+  --accent-hover: #b8963e;
+  --success: #22C55E;
+  --danger: #EF4444;
+  --warning: #F59E0B;
+
+  /* Light mode */
+  --bg: #F4F6F9;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #F0F4F9;
+  --border: #E2E8F0;
+  --text-primary: #0F1117;
+  --text-secondary: #64748B;
+  --text-muted: #94A3B8;
+
+  --radius: 0.75rem;
+  --radius-sm: 0.5rem;
+  --radius-lg: 1rem;
+}
+
+.dark {
+  --bg: #0F1117;
+  --bg-card: #1A1A2E;
+  --bg-card-hover: #1e1e38;
+  --border: #2D2D44;
+  --text-primary: #F9FAFB;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-primary: var(--primary);
+  --color-accent: var(--accent);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --color-bg: var(--bg);
+  --color-card: var(--bg-card);
+  --color-border: var(--border);
+  --color-text: var(--text-primary);
+  --color-muted: var(--text-secondary);
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-display: "Outfit", system-ui, sans-serif;
+  --radius-default: var(--radius);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: dark light;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: "Inter", system-ui, sans-serif;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Scrollbar ────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ── Live badge pulse ─────────────────────────────────────── */
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239,68,68,0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(239,68,68,0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+}
+.pulse-live { animation: pulse-ring 2s infinite; }
+
+/* ── Gradient text ────────────────────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, var(--accent) 0%, #E8C96A 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Card glass effect ────────────────────────────────────── */
+.glass {
+  background: rgba(26, 26, 46, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(201, 168, 76, 0.15);
+}
+
+/* ── FIFA hero gradient ───────────────────────────────────── */
+.hero-gradient {
+  background: linear-gradient(135deg, #0F1117 0%, #1A1A2E 40%, #1A3C6E 100%);
+}
+
+/* ── Colombia highlight ───────────────────────────────────── */
+.colombia-card {
+  border: 2px solid var(--warning);
+  background: linear-gradient(135deg, rgba(245,158,11,0.08) 0%, transparent 100%);
 }

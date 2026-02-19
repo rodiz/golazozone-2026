@@ -1,36 +1,119 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GolazoZone 2026 ⚽🏆
 
-## Getting Started
+**La polla mundialista más completa del FIFA World Cup 2026**
 
-First, run the development server:
+> 104 partidos · 48 equipos · 12 grupos · Sistema de puntuación multi-categoría · Ranking en tiempo real
 
+---
+
+## Stack Tecnológico
+
+| Capa | Tecnología |
+|------|-----------|
+| Frontend | Next.js 16 (App Router) + TypeScript |
+| Estilos | TailwindCSS v4 + Design System custom |
+| Animaciones | Framer Motion |
+| Backend API | Next.js API Routes |
+| ORM | Prisma |
+| Base de Datos | PostgreSQL (Supabase) |
+| Autenticación | NextAuth.js v5 + Credentials + OAuth |
+| Emails | Resend |
+| Deploy | Vercel + Supabase |
+
+## Setup
+
+### 1. Clonar e instalar
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/rodiz/golazozone-2026.git
+cd golazozone-2026
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Variables de entorno
+```bash
+cp .env.example .env.local
+# Completa DATABASE_URL, DIRECT_URL, AUTH_SECRET, RESEND_API_KEY
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Base de datos (Supabase)
+```bash
+npm run db:push       # Aplica el schema
+npm run db:seed       # Carga 104 partidos + superadmin
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 4. Desarrollo
+```bash
+npm run dev
+```
 
-## Learn More
+Accede a [http://localhost:3000](http://localhost:3000)
 
-To learn more about Next.js, take a look at the following resources:
+**Superadmin:** `admin@golazozone.com` / `SuperAdmin2026!`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Estructura del Proyecto
 
-## Deploy on Vercel
+```
+src/
+├── app/
+│   ├── (auth)/          # Login, Register, Reset Password, Verify Email
+│   ├── (app)/           # Dashboard, Fixture, Predictions, Leaderboard, Groups, Profile, My Stats
+│   ├── admin/           # Panel Admin (Dashboard, Matches, Users, Scoring, Audit)
+│   └── api/             # API Routes + Cron Jobs
+├── components/
+│   ├── ui/              # Button, Input, Card, Badge, CountdownTimer
+│   ├── fixture/         # MatchCard
+│   ├── predictions/     # PredictionForm (multi-step)
+│   └── layout/          # Navbar (desktop sidebar + mobile bottom nav)
+├── lib/
+│   ├── auth/            # NextAuth config + middleware
+│   ├── db/              # Prisma client
+│   ├── scoring/         # Motor de calculo de puntos
+│   ├── email/           # Templates con Resend
+│   └── validations/     # Schemas Zod compartidos
+└── types/               # TypeScript types globales
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Sistema de Puntuacion
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Categoria | Puntos |
+|-----------|--------|
+| Resultado exacto (score + ganador) | 5 pts |
+| Ganador correcto | 2 pts |
+| Goleador del partido | 3 pts |
+| Primer goleador | 3 pts |
+| MVP del partido | 2 pts |
+| Tarjetas amarillas exactas | 1 pt |
+| Tarjetas rojas exactas | 2 pts |
+| Jugador mas pases | 1 pt |
+| Bonus perfecto (todos correctos) | +5 pts |
+| Maximo posible | 24 pts |
+
+Configurable desde /admin/scoring sin necesidad de codigo.
+
+## Partidos de Colombia
+
+| Match | Partido | Fecha COL | Sede |
+|-------|---------|-----------|------|
+| #23 | Uzbekistan vs Colombia | Mie 17 Jun - 9:00 PM | Estadio Azteca, CDMX |
+| #45 | Colombia vs Rep. FIFA-1 | Mar 23 Jun - 9:00 PM | Estadio Akron, GDL |
+| #69 | Colombia vs Portugal | Sab 27 Jun - 6:30 PM | Hard Rock, Miami |
+
+## Cron Jobs (Vercel)
+
+| Job | Frecuencia | Funcion |
+|-----|-----------|---------|
+| /api/cron/lock-predictions | Cada 5 min | Cierra pronosticos al kickoff |
+| /api/cron/match-reminders | Cada hora | Envia emails 2h antes |
+
+## Deploy en Vercel
+
+1. Conecta el repo en vercel.com
+2. Agrega las variables de entorno
+3. Agrega CRON_SECRET en las env vars
+4. Deploy automatico en cada push a main
+
+---
+
+FIFA World Cup 2026 - 11 Jun a 19 Jul - USA / Mexico / Canada

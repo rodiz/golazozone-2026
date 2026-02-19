@@ -1,0 +1,407 @@
+// GolazoZone 2026 — Prisma Schema
+// Stack: PostgreSQL (Supabase) + Prisma ORM
+// NextAuth v5 compatible
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─────────────────────────────────────────────
+// AUTH MODELS (NextAuth v5 / @auth/prisma-adapter)
+// ─────────────────────────────────────────────
+
+enum Role {
+  USER
+  ADMIN
+  SUPERADMIN
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          Role      @default(USER)
+  isBlocked     Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  predictions   Prediction[]
+  leaderboard   Leaderboard?
+  notifications Notification[]
+  auditLogs     AuditLog[]
+  friendGroups  FriendGroupMember[]
+  ownedGroups   FriendGroup[]       @relation("GroupOwner")
+  verifyTokens  VerificationToken[]
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  id        String    @id @default(cuid())
+  userId    String?
+  email     String
+  token     String    @unique
+  type      TokenType
+  expires   DateTime
+  createdAt DateTime  @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([email])
+  @@map("verification_tokens")
+}
+
+enum TokenType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
+// ─────────────────────────────────────────────
+// TOURNAMENT MODELS
+// ─────────────────────────────────────────────
+
+enum PhaseType {
+  GROUP_STAGE
+  ROUND_OF_32
+  QUARTER_FINALS
+  SEMI_FINALS
+  THIRD_PLACE
+  FINAL
+}
+
+model Phase {
+  id        String    @id @default(cuid())
+  name      String
+  slug      PhaseType @unique
+  order     Int
+  startDate DateTime?
+  endDate   DateTime?
+  isActive  Boolean   @default(false)
+
+  matches Match[]
+
+  @@map("phases")
+}
+
+model TournamentGroup {
+  id     String @id @default(cuid())
+  name   String
+  letter String @unique
+
+  teams   TeamGroup[]
+  matches Match[]
+
+  @@map("tournament_groups")
+}
+
+model Team {
+  id                String  @id @default(cuid())
+  name              String
+  shortCode         String  @unique
+  flag              String
+  confirmed         Boolean @default(true)
+  playoffSlotLabel  String?
+  playoffCandidates String?
+
+  homeMatches Match[]     @relation("HomeTeam")
+  awayMatches Match[]     @relation("AwayTeam")
+  groups      TeamGroup[]
+
+  @@index([shortCode])
+  @@map("teams")
+}
+
+model TeamGroup {
+  id      String @id @default(cuid())
+  teamId  String
+  groupId String
+
+  team  Team            @relation(fields: [teamId], references: [id])
+  group TournamentGroup @relation(fields: [groupId], references: [id])
+
+  @@unique([teamId, groupId])
+  @@map("team_groups")
+}
+
+enum MatchStatus {
+  SCHEDULED
+  LIVE
+  FINISHED
+  CANCELLED
+}
+
+model Match {
+  id            String      @id @default(cuid())
+  matchNumber   Int         @unique
+  phaseId       String
+  groupId       String?
+  matchday      Int?
+  homeSlotLabel String?
+  awaySlotLabel String?
+  homeTeamId    String?
+  awayTeamId    String?
+  dateUTC       DateTime
+  dateColombia  String
+  venue         String
+  city          String
+  country       String
+  status        MatchStatus @default(SCHEDULED)
+  predictable   Boolean     @default(true)
+  lockAt        DateTime
+  isFeatured    Boolean     @default(false)
+
+  phase  Phase            @relation(fields: [phaseId], references: [id])
+  group  TournamentGroup? @relation(fields: [groupId], references: [id])
+  home   Team?            @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  away   Team?            @relation("AwayTeam", fields: [awayTeamId], references: [id])
+
+  result      Result?
+  predictions Prediction[]
+
+  @@index([status])
+  @@index([dateUTC])
+  @@index([groupId])
+  @@index([phaseId])
+  @@map("matches")
+}
+
+model Result {
+  id          String     @id @default(cuid())
+  matchId     String     @unique
+  homeScore   Int
+  awayScore   Int
+  winner      WinnerEnum
+  topScorer   String?
+  firstScorer String?
+  mvp         String?
+  yellowCards Int        @default(0)
+  redCards    Int        @default(0)
+  mostPasses  String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@map("results")
+}
+
+enum WinnerEnum {
+  HOME
+  DRAW
+  AWAY
+}
+
+// ─────────────────────────────────────────────
+// PREDICTION & SCORING MODELS
+// ─────────────────────────────────────────────
+
+model Prediction {
+  id          String     @id @default(cuid())
+  userId      String
+  matchId     String
+  homeScore   Int
+  awayScore   Int
+  winner      WinnerEnum
+  topScorer   String?
+  firstScorer String?
+  mvp         String?
+  yellowCards Int?
+  redCards    Int?
+  mostPasses  String?
+  lockedAt    DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  score PredictionScore?
+
+  @@unique([userId, matchId])
+  @@index([userId])
+  @@index([matchId])
+  @@map("predictions")
+}
+
+model PredictionScore {
+  id                 String @id @default(cuid())
+  predictionId       String @unique
+  pointsWinner       Int    @default(0)
+  pointsExactScore   Int    @default(0)
+  pointsTopScorer    Int    @default(0)
+  pointsFirstScorer  Int    @default(0)
+  pointsMvp          Int    @default(0)
+  pointsYellowCards  Int    @default(0)
+  pointsRedCards     Int    @default(0)
+  pointsMostPasses   Int    @default(0)
+  pointsPerfectBonus Int    @default(0)
+  totalPoints        Int    @default(0)
+  calculatedAt       DateTime @default(now())
+
+  prediction Prediction @relation(fields: [predictionId], references: [id], onDelete: Cascade)
+
+  @@map("prediction_scores")
+}
+
+model ScoringConfig {
+  id                 String   @id @default(cuid())
+  pointsWinner       Int      @default(2)
+  pointsExactScore   Int      @default(5)
+  pointsTopScorer    Int      @default(3)
+  pointsFirstScorer  Int      @default(3)
+  pointsMvp          Int      @default(2)
+  pointsYellowCards  Int      @default(1)
+  pointsRedCards     Int      @default(2)
+  pointsMostPasses   Int      @default(1)
+  pointsPerfectBonus Int      @default(5)
+  updatedAt          DateTime @updatedAt
+  updatedBy          String?
+
+  @@map("scoring_config")
+}
+
+// ─────────────────────────────────────────────
+// LEADERBOARD
+// ─────────────────────────────────────────────
+
+model Leaderboard {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  totalPoints    Int      @default(0)
+  globalRank     Int      @default(0)
+  matchesPlayed  Int      @default(0)
+  exactScores    Int      @default(0)
+  correctWinners Int      @default(0)
+  accuracy       Float    @default(0)
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([totalPoints])
+  @@index([globalRank])
+  @@map("leaderboard")
+}
+
+// ─────────────────────────────────────────────
+// FRIEND GROUPS
+// ─────────────────────────────────────────────
+
+model FriendGroup {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  code        String   @unique
+  ownerId     String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner   User                @relation("GroupOwner", fields: [ownerId], references: [id])
+  members FriendGroupMember[]
+
+  @@index([code])
+  @@map("friend_groups")
+}
+
+model FriendGroupMember {
+  id          String   @id @default(cuid())
+  groupId     String
+  userId      String
+  joinedAt    DateTime @default(now())
+  groupRank   Int      @default(0)
+  groupPoints Int      @default(0)
+
+  group FriendGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@map("friend_group_members")
+}
+
+// ─────────────────────────────────────────────
+// NOTIFICATIONS & AUDIT
+// ─────────────────────────────────────────────
+
+enum NotificationType {
+  MATCH_REMINDER
+  POINTS_AWARDED
+  RANKING_CHANGE
+  SYSTEM
+}
+
+model Notification {
+  id      String           @id @default(cuid())
+  userId  String
+  type    NotificationType
+  title   String
+  message String           @db.Text
+  isRead  Boolean          @default(false)
+  sentAt  DateTime         @default(now())
+  readAt  DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  entity    String
+  entityId  String?
+  metadata  Json?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
