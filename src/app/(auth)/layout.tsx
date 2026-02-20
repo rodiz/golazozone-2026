@@ -1,24 +1,53 @@
-export default function AuthLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AuthLayout({ children }: { children: import("react").ReactNode }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--bg)] p-4">
-      <div className="w-full max-w-md">
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "var(--bg)",
+        padding: "1.5rem 1rem",
+      }}
+    >
+      <div style={{ width: "100%", maxWidth: "26rem" }}>
+
         {/* Logo */}
-        <div className="text-center mb-8">
-          <span className="text-5xl block mb-3">⚽</span>
-          <h1 className="font-display font-black text-3xl text-[var(--text-primary)]">
-            Golazo<span className="gradient-text">Zone</span>
+        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+          <div style={{ fontSize: "3rem", lineHeight: 1, marginBottom: "0.75rem" }}>⚽</div>
+          <h1
+            className="font-display font-black gradient-text"
+            style={{ fontSize: "2rem", lineHeight: 1 }}
+          >
+            GolazoZone
           </h1>
-          <p className="text-[var(--accent)] font-semibold text-sm tracking-widest mt-1">
-            FIFA WORLD CUP 2026
+          <p
+            style={{
+              color: "var(--accent)",
+              fontWeight: 600,
+              fontSize: "0.7rem",
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              marginTop: "0.375rem",
+            }}
+          >
+            FIFA World Cup 2026
           </p>
         </div>
-        <div className="rounded-[var(--radius-lg)] bg-[var(--bg-card)] border border-[var(--border)] p-6 shadow-xl">
+
+        {/* Card */}
+        <div
+          style={{
+            background: "var(--bg-card)",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius-lg)",
+            padding: "2rem 1.75rem",
+            boxShadow: "0 24px 48px rgba(0,0,0,0.35)",
+          }}
+        >
           {children}
         </div>
+
       </div>
     </div>
   );

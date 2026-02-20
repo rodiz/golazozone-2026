@@ -11,6 +11,15 @@ import { Input } from "@/components/ui/input";
 import { resetPasswordRequestSchema, resetPasswordSchema } from "@/lib/validations/auth";
 import type { ResetPasswordRequestInput, ResetPasswordInput } from "@/lib/validations/auth";
 
+const errorBoxStyle: React.CSSProperties = {
+  background: "rgba(239,68,68,0.1)",
+  border: "1px solid rgba(239,68,68,0.3)",
+  borderRadius: "var(--radius-sm)",
+  padding: "0.625rem 0.875rem",
+  fontSize: "0.85rem",
+  color: "var(--danger)",
+};
+
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -62,65 +71,70 @@ function ResetPasswordForm() {
     }
   };
 
+  const successContent = (icon: string, title: string, desc: string, href: string, label: string) => (
+    <div style={{ textAlign: "center", display: "flex", flexDirection: "column", gap: "1rem", padding: "1rem 0" }}>
+      <div style={{ fontSize: "3rem" }}>{icon}</div>
+      <h2 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--text-primary)" }}>{title}</h2>
+      <p style={{ fontSize: "0.875rem", color: "var(--text-muted)" }}>{desc}</p>
+      <Link href={href}>
+        <Button variant="accent" size="lg" style={{ width: "100%" }}>{label}</Button>
+      </Link>
+    </div>
+  );
+
   if (done && !token) {
-    return (
-      <div className="text-center space-y-4 py-4">
-        <span className="text-5xl">📧</span>
-        <h2 className="text-xl font-bold text-[var(--text-primary)]">¡Revisa tu email!</h2>
-        <p className="text-sm text-[var(--text-muted)]">
-          Si existe una cuenta con ese email, recibirás un link para restablecer tu contraseña.
-        </p>
-        <Link href="/login"><Button variant="accent" className="w-full">Ir al login</Button></Link>
-      </div>
+    return successContent(
+      "📧",
+      "¡Revisa tu email!",
+      "Si existe una cuenta con ese email, recibirás un link para restablecer tu contraseña.",
+      "/login",
+      "Ir al login"
     );
   }
 
   if (done && token) {
-    return (
-      <div className="text-center space-y-4 py-4">
-        <span className="text-5xl">✅</span>
-        <h2 className="text-xl font-bold text-[var(--text-primary)]">¡Contraseña actualizada!</h2>
-        <Link href="/login"><Button variant="accent" className="w-full">Iniciar sesión</Button></Link>
-      </div>
-    );
+    return successContent("✅", "¡Contraseña actualizada!", "", "/login", "Iniciar sesión");
   }
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-xl font-bold text-[var(--text-primary)]">
+    <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+
+      <div style={{ textAlign: "center" }}>
+        <h2 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--text-primary)" }}>
           {token ? "Nueva contraseña" : "Recuperar contraseña"}
         </h2>
       </div>
 
-      {error && (
-        <div className="rounded-[var(--radius-sm)] bg-red-500/10 border border-red-500/30 px-3 py-2 text-sm text-[var(--danger)]">
-          {error}
-        </div>
-      )}
+      {error && <div style={errorBoxStyle}>{error}</div>}
 
       {!token ? (
-        <form onSubmit={reqForm.handleSubmit(onRequest)} className="space-y-4">
+        <form
+          onSubmit={reqForm.handleSubmit(onRequest)}
+          style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
+        >
           <Input
             label="Email"
             type="email"
             placeholder="tu@email.com"
-            icon={<Mail className="w-4 h-4" />}
+            icon={<Mail size={16} />}
             error={reqForm.formState.errors.email?.message}
             {...reqForm.register("email")}
           />
-          <Button type="submit" variant="accent" size="lg" className="w-full" loading={loading}>
+          <Button type="submit" variant="accent" size="lg" style={{ width: "100%" }} loading={loading}>
             Enviar link de recuperación
           </Button>
         </form>
       ) : (
-        <form onSubmit={resetForm.handleSubmit(onReset)} className="space-y-4">
+        <form
+          onSubmit={resetForm.handleSubmit(onReset)}
+          style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
+        >
           <input type="hidden" {...resetForm.register("token")} />
           <Input
             label="Nueva contraseña"
             type="password"
             placeholder="Mín. 8 chars, 1 mayúscula, 1 número"
-            icon={<Lock className="w-4 h-4" />}
+            icon={<Lock size={16} />}
             error={resetForm.formState.errors.password?.message}
             {...resetForm.register("password")}
           />
@@ -128,18 +142,20 @@ function ResetPasswordForm() {
             label="Confirmar contraseña"
             type="password"
             placeholder="••••••••"
-            icon={<Lock className="w-4 h-4" />}
+            icon={<Lock size={16} />}
             error={resetForm.formState.errors.confirmPassword?.message}
             {...resetForm.register("confirmPassword")}
           />
-          <Button type="submit" variant="accent" size="lg" className="w-full" loading={loading}>
+          <Button type="submit" variant="accent" size="lg" style={{ width: "100%" }} loading={loading}>
             Establecer nueva contraseña
           </Button>
         </form>
       )}
 
-      <p className="text-center text-sm text-[var(--text-muted)]">
-        <Link href="/login" className="text-[var(--accent)] hover:underline">Volver al login</Link>
+      <p style={{ textAlign: "center", fontSize: "0.875rem", color: "var(--text-muted)" }}>
+        <Link href="/login" style={{ color: "var(--accent)", textDecoration: "none" }}>
+          Volver al login
+        </Link>
       </p>
     </div>
   );
@@ -147,7 +163,21 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<div className="h-40 flex items-center justify-center text-[var(--text-muted)]">Cargando...</div>}>
+    <Suspense
+      fallback={
+        <div
+          style={{
+            height: "10rem",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "var(--text-muted)",
+          }}
+        >
+          Cargando...
+        </div>
+      }
+    >
       <ResetPasswordForm />
     </Suspense>
   );

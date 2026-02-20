@@ -20,7 +20,8 @@ export default auth((req: NextRequest & { auth: { user?: { role?: string } } | n
 
   // Redirect authenticated users away from auth pages
   if (isLoggedIn && (nextUrl.pathname === "/login" || nextUrl.pathname === "/register")) {
-    return NextResponse.redirect(new URL("/dashboard", nextUrl));
+    const isAdmin = userRole === "ADMIN" || userRole === "SUPERADMIN";
+    return NextResponse.redirect(new URL(isAdmin ? "/admin/dashboard" : "/dashboard", nextUrl));
   }
 
   // Protect private routes
@@ -28,6 +29,15 @@ export default auth((req: NextRequest & { auth: { user?: { role?: string } } | n
     const loginUrl = new URL("/login", nextUrl);
     loginUrl.searchParams.set("callbackUrl", nextUrl.pathname);
     return NextResponse.redirect(loginUrl);
+  }
+
+  // Protect public and user-specific routes from admins
+  const isUserAppRoute = ["/dashboard", "/fixture", "/predictions", "/leaderboard", "/groups", "/my-stats", "/profile"].some(route =>
+    nextUrl.pathname.startsWith(route)
+  );
+
+  if (isUserAppRoute && isLoggedIn && (userRole === "ADMIN" || userRole === "SUPERADMIN")) {
+    return NextResponse.redirect(new URL("/admin/dashboard", nextUrl));
   }
 
   // Protect admin routes

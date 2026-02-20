@@ -3,12 +3,17 @@ import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Trophy, Target, Star, TrendingUp } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MatchCard } from "@/components/fixture/match-card";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Dashboard" };
+
+const matchGrid: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fill, minmax(17rem, 1fr))",
+  gap: "0.75rem",
+};
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -16,10 +21,8 @@ export default async function DashboardPage() {
 
   const userId = session.user.id;
 
-  // Get leaderboard stats
   const leaderboard = await db.leaderboard.findUnique({ where: { userId } });
 
-  // Get next 3 upcoming matches without prediction
   const upcomingUnpredicted = await db.match.findMany({
     where: {
       status: "SCHEDULED",
@@ -39,12 +42,8 @@ export default async function DashboardPage() {
     take: 3,
   });
 
-  // Get last 3 finished matches with predictions
   const recentFinished = await db.prediction.findMany({
-    where: {
-      userId,
-      match: { status: "FINISHED" },
-    },
+    where: { userId, match: { status: "FINISHED" } },
     include: {
       match: {
         include: {
@@ -61,7 +60,6 @@ export default async function DashboardPage() {
     take: 3,
   });
 
-  // Pending predictions count
   const pendingCount = await db.match.count({
     where: {
       status: "SCHEDULED",
@@ -72,75 +70,53 @@ export default async function DashboardPage() {
   });
 
   const stats = [
-    {
-      label: "Puntos totales",
-      value: leaderboard?.totalPoints ?? 0,
-      icon: Trophy,
-      color: "text-[var(--accent)]",
-    },
-    {
-      label: "Posición global",
-      value: leaderboard?.globalRank ? `#${leaderboard.globalRank}` : "—",
-      icon: TrendingUp,
-      color: "text-[var(--success)]",
-    },
-    {
-      label: "Marcadores exactos",
-      value: leaderboard?.exactScores ?? 0,
-      icon: Star,
-      color: "text-[var(--warning)]",
-    },
-    {
-      label: "Sin pronosticar",
-      value: pendingCount,
-      icon: Target,
-      color: "text-[var(--danger)]",
-    },
+    { label: "Puntos totales",    value: leaderboard?.totalPoints ?? 0,                       icon: Trophy,    colorVar: "var(--accent)"  },
+    { label: "Posición global",   value: leaderboard?.globalRank ? `#${leaderboard.globalRank}` : "—", icon: TrendingUp, colorVar: "var(--success)" },
+    { label: "Marcadores exactos",value: leaderboard?.exactScores ?? 0,                       icon: Star,      colorVar: "var(--warning)" },
+    { label: "Sin pronosticar",   value: pendingCount,                                         icon: Target,    colorVar: "var(--danger)"  },
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="page-stack">
       {/* Header */}
       <div>
-        <h1 className="font-display font-bold text-2xl text-[var(--text-primary)]">
+        <h1 className="font-display font-bold" style={{ fontSize: "1.5rem", color: "var(--text-primary)" }}>
           ¡Hola, {session.user.name?.split(" ")[0] ?? "crack"}! 👋
         </h1>
-        <p className="text-[var(--text-muted)] text-sm mt-1">
+        <p style={{ fontSize: "0.875rem", color: "var(--text-muted)", marginTop: "0.25rem" }}>
           FIFA World Cup 2026 · 11 Jun – 19 Jul · USA / México / Canadá
         </p>
       </div>
 
       {/* Stats grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(9rem, 1fr))", gap: "1rem" }}>
         {stats.map((stat) => (
-          <Card key={stat.label}>
-            <CardContent className="pt-5">
-              <div className="flex items-start justify-between">
+          <div key={stat.label} className="card">
+            <div className="card-content" style={{ paddingTop: "1.25rem" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
                 <div>
-                  <p className="text-xs text-[var(--text-muted)] font-medium">{stat.label}</p>
-                  <p className={`text-3xl font-display font-bold mt-1 ${stat.color}`}>
+                  <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 500 }}>{stat.label}</p>
+                  <p className="font-display font-bold" style={{ fontSize: "1.875rem", marginTop: "0.25rem", color: stat.colorVar }}>
                     {stat.value}
                   </p>
                 </div>
-                <stat.icon className={`w-5 h-5 ${stat.color} opacity-70 flex-shrink-0`} />
+                <stat.icon size={20} style={{ color: stat.colorVar, opacity: 0.7, flexShrink: 0 }} />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         ))}
       </div>
 
       {/* Upcoming matches to predict */}
       {upcomingUnpredicted.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-[var(--text-primary)]">
-              ⏳ Pronósticos pendientes
-            </h2>
+        <div className="page-stack-sm">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <h2 style={{ fontWeight: 600, color: "var(--text-primary)" }}>⏳ Pronósticos pendientes</h2>
             <Link href="/fixture">
               <Button variant="ghost" size="sm">Ver todos →</Button>
             </Link>
           </div>
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          <div style={matchGrid}>
             {upcomingUnpredicted.map((match) => (
               <MatchCard
                 key={match.id}
@@ -153,16 +129,14 @@ export default async function DashboardPage() {
 
       {/* Recent results */}
       {recentFinished.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-[var(--text-primary)]">
-              ✅ Últimos resultados
-            </h2>
+        <div className="page-stack-sm">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <h2 style={{ fontWeight: 600, color: "var(--text-primary)" }}>✅ Últimos resultados</h2>
             <Link href="/predictions">
               <Button variant="ghost" size="sm">Ver todos →</Button>
             </Link>
           </div>
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          <div style={matchGrid}>
             {recentFinished.map((pred) => (
               <MatchCard
                 key={pred.matchId}
@@ -174,21 +148,21 @@ export default async function DashboardPage() {
       )}
 
       {/* Colombia games highlight */}
-      <div className="colombia-card rounded-[var(--radius-lg)] p-5 space-y-3">
-        <h2 className="font-semibold text-[var(--warning)] flex items-center gap-2">
+      <div className="colombia-card" style={{ borderRadius: "var(--radius-lg)", padding: "1.25rem" }}>
+        <h2 style={{ fontWeight: 600, color: "var(--warning)", display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.75rem" }}>
           🇨🇴 Partidos de Colombia — Grupo K
         </h2>
-        <div className="grid gap-2 text-sm">
+        <div style={{ display: "grid", gap: "0.5rem" }}>
           {[
-            { match: "Uzbekistán vs Colombia", date: "Mié 17 Jun · 9:00 PM (COL)", venue: "Estadio Azteca, CDMX" },
+            { match: "Uzbekistán vs Colombia",  date: "Mié 17 Jun · 9:00 PM (COL)", venue: "Estadio Azteca, CDMX" },
             { match: "Colombia vs Rep. FIFA-1", date: "Mar 23 Jun · 9:00 PM (COL)", venue: "Estadio Akron, Guadalajara" },
-            { match: "Colombia vs Portugal", date: "Sáb 27 Jun · 6:30 PM (COL)", venue: "Hard Rock Stadium, Miami" },
+            { match: "Colombia vs Portugal",    date: "Sáb 27 Jun · 6:30 PM (COL)", venue: "Hard Rock Stadium, Miami" },
           ].map((g) => (
-            <div key={g.match} className="flex items-start gap-3 bg-black/20 rounded-[var(--radius-sm)] p-3">
-              <span className="text-lg flex-shrink-0">⚽</span>
+            <div key={g.match} style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem", background: "rgba(0,0,0,0.2)", borderRadius: "var(--radius-sm)", padding: "0.75rem" }}>
+              <span style={{ fontSize: "1.125rem", flexShrink: 0 }}>⚽</span>
               <div>
-                <p className="font-semibold text-[var(--text-primary)]">{g.match}</p>
-                <p className="text-xs text-[var(--text-muted)]">{g.date} · {g.venue}</p>
+                <p style={{ fontWeight: 600, color: "var(--text-primary)", fontSize: "0.875rem" }}>{g.match}</p>
+                <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "0.125rem" }}>{g.date} · {g.venue}</p>
               </div>
             </div>
           ))}

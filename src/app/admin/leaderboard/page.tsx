@@ -7,13 +7,13 @@ import { Trophy } from "lucide-react";
 interface LeaderboardEntry {
   userId: string;
   name: string | null;
+  email: string | null;
   image: string | null;
   totalPoints: number;
   globalRank: number;
   matchesPlayed: number;
   exactScores: number;
   accuracy: number;
-  isCurrentUser: boolean;
 }
 
 function RankIcon({ rank }: { rank: number }) {
@@ -23,7 +23,7 @@ function RankIcon({ rank }: { rank: number }) {
   return <span style={{ fontSize: "0.875rem", fontWeight: 700, color: "var(--text-muted)", display: "block", textAlign: "center" }}>{rank}</span>;
 }
 
-export default function LeaderboardPage() {
+export default function AdminLeaderboardPage() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -34,8 +34,6 @@ export default function LeaderboardPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const currentUser = entries.find((e) => e.isCurrentUser);
-
   return (
     <div className="page-stack">
       <div>
@@ -43,33 +41,15 @@ export default function LeaderboardPage() {
           Ranking Global 🏆
         </h1>
         <p style={{ fontSize: "0.875rem", color: "var(--text-muted)", marginTop: "0.25rem" }}>
-          Clasificación en tiempo real · se actualiza tras cada resultado
+          Vista de administrador · Historial de clasificación de los usuarios
         </p>
       </div>
 
-      {/* Current user highlight */}
-      {currentUser && (
-        <div className="colombia-card" style={{ borderRadius: "var(--radius-lg)", padding: "1rem", display: "flex", alignItems: "center", gap: "1rem" }}>
-          <div style={{ width: "3rem", height: "3rem", borderRadius: "50%", background: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, color: "#0F1117", fontSize: "1.125rem", flexShrink: 0 }}>
-            {currentUser.name?.[0]?.toUpperCase() ?? "?"}
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontWeight: 700, color: "var(--text-primary)" }}>{currentUser.name}</p>
-            <p style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Tu posición</p>
-          </div>
-          <div style={{ textAlign: "right", flexShrink: 0 }}>
-            <p className="font-display font-black" style={{ fontSize: "1.5rem", color: "var(--accent)" }}>#{currentUser.globalRank}</p>
-            <p style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{currentUser.totalPoints} pts</p>
-          </div>
-        </div>
-      )}
-
-      {/* Leaderboard table */}
       <div className="card">
         <div className="card-header">
           <div className="card-title">
-            <Trophy size={18} style={{ color: "var(--accent)" }} />
-            Clasificación
+            <Trophy size={20} style={{ color: "var(--accent)" }} />
+            Clasificación (Top 100)
           </div>
         </div>
         <div className="card-content-p0">
@@ -92,7 +72,6 @@ export default function LeaderboardPage() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.02 }}
                   className="row-item"
-                  style={{ background: entry.isCurrentUser ? "rgba(26,60,110,0.1)" : undefined }}
                 >
                   <div style={{ width: "2rem", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                     <RankIcon rank={i + 1} />
@@ -101,8 +80,8 @@ export default function LeaderboardPage() {
                     {entry.name?.[0]?.toUpperCase() ?? "?"}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontWeight: 600, fontSize: "0.875rem", color: entry.isCurrentUser ? "var(--accent)" : "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {entry.name ?? "Anónimo"} {entry.isCurrentUser && "(tú)"}
+                    <p style={{ fontWeight: 600, fontSize: "0.875rem", color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {entry.name ?? "Anónimo"}
                     </p>
                     <p style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
                       {entry.matchesPlayed} partidos · {entry.exactScores} exactos · {entry.accuracy.toFixed(0)}% acc

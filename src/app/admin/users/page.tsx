@@ -1,10 +1,26 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Admin — Usuarios" };
+
+const thStyle: React.CSSProperties = {
+  textAlign: "left",
+  padding: "0.75rem 1rem",
+  fontSize: "0.7rem",
+  fontWeight: 600,
+  color: "var(--text-muted)",
+  textTransform: "uppercase",
+  letterSpacing: "0.05em",
+  whiteSpace: "nowrap",
+};
+
+const tdStyle: React.CSSProperties = {
+  padding: "0.75rem 1rem",
+  fontSize: "0.875rem",
+  verticalAlign: "middle",
+};
 
 export default async function AdminUsersPage() {
   const session = await auth();
@@ -20,72 +36,70 @@ export default async function AdminUsersPage() {
     },
   });
 
+  const getRoleBadgeStyle = (role: string): React.CSSProperties => {
+    if (role === "SUPERADMIN") return { background: "rgba(239,68,68,0.2)", color: "#f87171" };
+    if (role === "ADMIN") return { background: "rgba(26,60,110,0.3)", color: "#60a5fa" };
+    return { background: "var(--border)", color: "var(--text-muted)" };
+  };
+
   return (
-    <div className="space-y-6">
-      <h1 className="font-display font-bold text-2xl text-[var(--text-primary)]">
+    <div className="page-stack">
+      <h1 className="font-display font-bold" style={{ fontSize: "1.5rem", color: "var(--text-primary)" }}>
         Usuarios ({users.length})
       </h1>
 
-      <Card>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-[var(--border)]">
-                  {["Nombre", "Email", "Rol", "Verificado", "Pronósticos", "Puntos", "Rank", "Acciones"].map((h) => (
-                    <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--border)]">
-                {users.map((user) => (
-                  <tr key={user.id} className="hover:bg-[var(--bg-card-hover)] transition-colors">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full bg-[var(--primary)] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                          {user.name?.[0]?.toUpperCase() ?? "?"}
-                        </div>
-                        <span className="font-medium text-[var(--text-primary)] truncate max-w-[120px]">
-                          {user.name ?? "—"}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-[var(--text-secondary)] text-xs">{user.email}</td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                        user.role === "SUPERADMIN" ? "bg-red-500/20 text-red-400" :
-                        user.role === "ADMIN" ? "bg-[var(--primary)]/30 text-blue-400" :
-                        "bg-[var(--border)] text-[var(--text-muted)]"
-                      }`}>
-                        {user.role}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      {user.emailVerified ? "✅" : "❌"}
-                    </td>
-                    <td className="px-4 py-3 text-center text-[var(--text-secondary)]">
-                      {user._count.predictions}
-                    </td>
-                    <td className="px-4 py-3 text-center font-bold text-[var(--accent)]">
-                      {user.leaderboard?.totalPoints ?? 0}
-                    </td>
-                    <td className="px-4 py-3 text-center text-[var(--text-muted)]">
-                      {user.leaderboard?.globalRank ? `#${user.leaderboard.globalRank}` : "—"}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`text-xs px-2 py-0.5 rounded ${user.isBlocked ? "bg-red-500/20 text-red-400" : "text-[var(--text-muted)]"}`}>
-                        {user.isBlocked ? "Bloqueado" : "Activo"}
-                      </span>
-                    </td>
-                  </tr>
+      <div className="card">
+        <div className="card-content-p0" style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", fontSize: "0.875rem", borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                {["Nombre", "Email", "Rol", "Verificado", "Pronósticos", "Puntos", "Rank", "Estado"].map((h) => (
+                  <th key={h} style={thStyle}>{h}</th>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr key={user.id} className="table-row-hover" style={{ borderBottom: "1px solid var(--border)" }}>
+                  <td style={tdStyle}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                      <div style={{ width: "1.75rem", height: "1.75rem", borderRadius: "50%", background: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: "0.75rem", fontWeight: 700, flexShrink: 0 }}>
+                        {user.name?.[0]?.toUpperCase() ?? "?"}
+                      </div>
+                      <span style={{ fontWeight: 500, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "7.5rem" }}>
+                        {user.name ?? "—"}
+                      </span>
+                    </div>
+                  </td>
+                  <td style={{ ...tdStyle, color: "var(--text-secondary)", fontSize: "0.75rem" }}>{user.email}</td>
+                  <td style={tdStyle}>
+                    <span style={{ padding: "0.125rem 0.5rem", borderRadius: "9999px", fontSize: "0.625rem", fontWeight: 700, ...getRoleBadgeStyle(user.role) }}>
+                      {user.role}
+                    </span>
+                  </td>
+                  <td style={{ ...tdStyle, textAlign: "center" }}>
+                    {user.emailVerified ? "✅" : "❌"}
+                  </td>
+                  <td style={{ ...tdStyle, textAlign: "center", color: "var(--text-secondary)" }}>
+                    {user._count.predictions}
+                  </td>
+                  <td style={{ ...tdStyle, textAlign: "center", fontWeight: 700, color: "var(--accent)" }}>
+                    {user.leaderboard?.totalPoints ?? 0}
+                  </td>
+                  <td style={{ ...tdStyle, textAlign: "center", color: "var(--text-muted)" }}>
+                    {user.leaderboard?.globalRank ? `#${user.leaderboard.globalRank}` : "—"}
+                  </td>
+                  <td style={tdStyle}>
+                    <span style={{ fontSize: "0.75rem", padding: "0.125rem 0.5rem", borderRadius: "var(--radius-sm)", ...(user.isBlocked ? { background: "rgba(239,68,68,0.2)", color: "#f87171" } : { color: "var(--text-muted)" }) }}>
+                      {user.isBlocked ? "Bloqueado" : "Activo"}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }

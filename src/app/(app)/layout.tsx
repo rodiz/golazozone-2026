@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { Navbar } from "@/components/layout/navbar";
+import { ClientLayout } from "@/components/layout/client-layout";
 
 export default async function AppLayout({
   children,
@@ -11,11 +11,8 @@ export default async function AppLayout({
   if (!session?.user) redirect("/login");
 
   return (
-    <div className="flex min-h-screen">
-      <Navbar session={session} />
-      <main className="flex-1 lg:ml-64 pb-20 lg:pb-0">
-        <div className="max-w-6xl mx-auto px-4 py-6">{children}</div>
-      </main>
-    </div>
+    <ClientLayout session={session}>
+      {children}
+    </ClientLayout>
   );
 }

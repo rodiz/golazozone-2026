@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface ScoringConfig {
   pointsWinner: number;
@@ -18,15 +17,15 @@ interface ScoringConfig {
 }
 
 const FIELDS: { key: keyof ScoringConfig; label: string; desc: string; max: number }[] = [
-  { key: "pointsExactScore", label: "Resultado exacto", desc: "Marcador y ganador perfectos", max: 10 },
-  { key: "pointsWinner", label: "Ganador correcto", desc: "Solo el resultado 1X2", max: 10 },
-  { key: "pointsTopScorer", label: "Goleador del partido", desc: "Nombre del jugador correcto", max: 10 },
-  { key: "pointsFirstScorer", label: "Primer goleador", desc: "El que marca primero", max: 10 },
-  { key: "pointsMvp", label: "MVP del partido", desc: "Elegido por árbitros FIFA", max: 10 },
-  { key: "pointsYellowCards", label: "Tarjetas amarillas exactas", desc: "Total del partido", max: 5 },
-  { key: "pointsRedCards", label: "Tarjetas rojas exactas", desc: "Total del partido", max: 10 },
-  { key: "pointsMostPasses", label: "Jugador más pases", desc: "Stat post-partido", max: 5 },
-  { key: "pointsPerfectBonus", label: "Bonus perfecto", desc: "Todos los campos correctos", max: 20 },
+  { key: "pointsExactScore",   label: "Resultado exacto",         desc: "Marcador y ganador perfectos",     max: 10 },
+  { key: "pointsWinner",       label: "Ganador correcto",         desc: "Solo el resultado 1X2",            max: 10 },
+  { key: "pointsTopScorer",    label: "Goleador del partido",     desc: "Nombre del jugador correcto",      max: 10 },
+  { key: "pointsFirstScorer",  label: "Primer goleador",          desc: "El que marca primero",             max: 10 },
+  { key: "pointsMvp",          label: "MVP del partido",          desc: "Elegido por árbitros FIFA",        max: 10 },
+  { key: "pointsYellowCards",  label: "Tarjetas amarillas exactas", desc: "Total del partido",              max: 5  },
+  { key: "pointsRedCards",     label: "Tarjetas rojas exactas",   desc: "Total del partido",                max: 10 },
+  { key: "pointsMostPasses",   label: "Jugador más pases",        desc: "Stat post-partido",                max: 5  },
+  { key: "pointsPerfectBonus", label: "Bonus perfecto",           desc: "Todos los campos correctos",       max: 20 },
 ];
 
 export default function AdminScoringPage() {
@@ -63,71 +62,74 @@ export default function AdminScoringPage() {
   const maxTotal = FIELDS.reduce((acc, f) => acc + Math.max(config[f.key] ?? 0, 0), 0);
 
   return (
-    <div className="space-y-6 max-w-2xl">
-      <h1 className="font-display font-bold text-2xl text-[var(--text-primary)]">
+    <div className="page-stack" style={{ maxWidth: "40rem" }}>
+      <h1 className="font-display font-bold" style={{ fontSize: "1.5rem", color: "var(--text-primary)" }}>
         Configuración de Puntos
       </h1>
 
       {saved && (
-        <div className="rounded-[var(--radius-sm)] bg-green-500/10 border border-green-500/30 px-4 py-3 text-sm text-[var(--success)] flex items-center gap-2">
-          <CheckCircle className="w-4 h-4" /> Configuración guardada correctamente
+        <div className="alert-success">
+          <CheckCircle size={16} /> Configuración guardada correctamente
         </div>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>
+      <div className="card">
+        <div className="card-header">
+          <div className="card-title">
             Sistema de puntuación
-            <span className="ml-2 text-sm font-normal text-[var(--text-muted)]">
-              Máx. posible por partido: <strong className="text-[var(--accent)]">{maxTotal} pts</strong>
+            <span style={{ fontSize: "0.875rem", fontWeight: 400, color: "var(--text-muted)", marginLeft: "0.5rem" }}>
+              Máx. posible por partido:{" "}
+              <strong style={{ color: "var(--accent)" }}>{maxTotal} pts</strong>
             </span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+          </div>
+        </div>
+        <div className="card-content">
           {loading ? (
-            <div className="space-y-3">
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
               {Array.from({ length: 9 }).map((_, i) => (
-                <div key={i} className="h-14 bg-[var(--bg-card-hover)] rounded animate-pulse" />
+                <div key={i} className="skeleton" style={{ height: "3.5rem" }} />
               ))}
             </div>
           ) : (
-            FIELDS.map((field) => (
-              <div key={field.key} className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-[var(--text-primary)]">{field.label}</p>
-                    <p className="text-xs text-[var(--text-muted)]">{field.desc}</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+              {FIELDS.map((field) => (
+                <div key={field.key}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.375rem" }}>
+                    <div>
+                      <p style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--text-primary)" }}>{field.label}</p>
+                      <p style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{field.desc}</p>
+                    </div>
+                    <span className="font-display font-bold" style={{ fontSize: "1.25rem", color: "var(--accent)", width: "2.5rem", textAlign: "right" }}>
+                      {config[field.key]}
+                    </span>
                   </div>
-                  <span className="font-display font-bold text-xl text-[var(--accent)] w-10 text-right">
-                    {config[field.key]}
-                  </span>
+                  <input
+                    type="range"
+                    min={0}
+                    max={field.max}
+                    value={config[field.key]}
+                    onChange={(e) => setConfig({ ...config, [field.key]: parseInt(e.target.value) })}
+                    className="range-slider"
+                    style={{
+                      background: `linear-gradient(to right, var(--accent) 0%, var(--accent) ${(config[field.key] / field.max) * 100}%, var(--border) ${(config[field.key] / field.max) * 100}%, var(--border) 100%)`
+                    }}
+                  />
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.625rem", color: "var(--text-muted)", marginTop: "0.125rem" }}>
+                    <span>0</span>
+                    <span>{field.max}</span>
+                  </div>
                 </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={field.max}
-                  value={config[field.key]}
-                  onChange={(e) => setConfig({ ...config, [field.key]: parseInt(e.target.value) })}
-                  className="w-full h-2 rounded-full bg-[var(--border)] appearance-none cursor-pointer"
-                  style={{
-                    background: `linear-gradient(to right, var(--accent) 0%, var(--accent) ${(config[field.key] / field.max) * 100}%, var(--border) ${(config[field.key] / field.max) * 100}%, var(--border) 100%)`
-                  }}
-                />
-                <div className="flex justify-between text-[10px] text-[var(--text-muted)]">
-                  <span>0</span>
-                  <span>{field.max}</span>
-                </div>
-              </div>
-            ))
+              ))}
+            </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Button variant="accent" size="lg" onClick={save} loading={saving} className="w-full">
+      <Button variant="accent" size="lg" onClick={save} loading={saving} style={{ width: "100%" }}>
         Guardar configuración
       </Button>
 
-      <p className="text-xs text-[var(--text-muted)] text-center">
+      <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", textAlign: "center" }}>
         ⚠️ Los cambios solo afectan a partidos futuros. Los pronósticos ya calculados no se recalculan automáticamente.
       </p>
     </div>

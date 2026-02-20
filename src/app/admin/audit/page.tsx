@@ -1,12 +1,18 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Admin — Auditoría" };
+
+const ACTION_COLORS: Record<string, string> = {
+  RESULT_CREATED:  "var(--success)",
+  SCORING_UPDATED: "var(--warning)",
+  USER_BLOCKED:    "var(--danger)",
+  USER_ROLE_CHANGED: "var(--primary)",
+};
 
 export default async function AdminAuditPage() {
   const session = await auth();
@@ -20,48 +26,43 @@ export default async function AdminAuditPage() {
     include: { user: { select: { name: true, email: true } } },
   });
 
-  const actionColors: Record<string, string> = {
-    RESULT_CREATED: "text-[var(--success)]",
-    SCORING_UPDATED: "text-[var(--warning)]",
-    USER_BLOCKED: "text-[var(--danger)]",
-    USER_ROLE_CHANGED: "text-[var(--primary)]",
-  };
-
   return (
-    <div className="space-y-6">
-      <h1 className="font-display font-bold text-2xl text-[var(--text-primary)]">
+    <div className="page-stack">
+      <h1 className="font-display font-bold" style={{ fontSize: "1.5rem", color: "var(--text-primary)" }}>
         Log de Auditoría
       </h1>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Últimas 100 acciones admin</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
+      <div className="card">
+        <div className="card-header">
+          <div className="card-title">Últimas 100 acciones admin</div>
+        </div>
+        <div className="card-content-p0">
           {logs.length === 0 ? (
-            <p className="p-6 text-center text-[var(--text-muted)]">Sin registros de auditoría</p>
+            <p style={{ padding: "1.5rem", textAlign: "center", color: "var(--text-muted)" }}>
+              Sin registros de auditoría
+            </p>
           ) : (
-            <div className="divide-y divide-[var(--border)]">
+            <div className="rows-divided">
               {logs.map((log) => (
-                <div key={log.id} className="flex items-start gap-4 px-5 py-3 hover:bg-[var(--bg-card-hover)] transition-colors">
-                  <div className="flex-shrink-0 w-32 text-right">
-                    <p className="text-xs text-[var(--text-muted)]">
+                <div key={log.id} className="row-item" style={{ alignItems: "flex-start" }}>
+                  <div style={{ flexShrink: 0, width: "8rem", textAlign: "right" }}>
+                    <p style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
                       {format(new Date(log.createdAt), "dd MMM HH:mm", { locale: es })}
                     </p>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <span className={`text-sm font-bold ${actionColors[log.action] ?? "text-[var(--text-primary)]"}`}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ fontSize: "0.875rem", fontWeight: 700, color: ACTION_COLORS[log.action] ?? "var(--text-primary)" }}>
                       {log.action}
                     </span>
-                    <span className="text-sm text-[var(--text-muted)] ml-2">
+                    <span style={{ fontSize: "0.875rem", color: "var(--text-muted)", marginLeft: "0.5rem" }}>
                       en {log.entity}{log.entityId ? ` (${log.entityId.slice(0, 8)}...)` : ""}
                     </span>
-                    <p className="text-xs text-[var(--text-muted)] mt-0.5">
+                    <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "0.25rem" }}>
                       por {log.user.name ?? log.user.email}
                       {log.ip && ` · ${log.ip}`}
                     </p>
                     {log.metadata && (
-                      <pre className="text-[10px] text-[var(--text-muted)] mt-1 bg-[var(--bg-card-hover)] rounded p-1 overflow-x-auto">
+                      <pre style={{ fontSize: "0.625rem", color: "var(--text-muted)", marginTop: "0.25rem", background: "var(--bg-card-hover)", borderRadius: "var(--radius-sm)", padding: "0.25rem 0.5rem", overflowX: "auto" }}>
                         {JSON.stringify(log.metadata, null, 2)}
                       </pre>
                     )}
@@ -70,8 +71,8 @@ export default async function AdminAuditPage() {
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

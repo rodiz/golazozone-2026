@@ -1,77 +1,55 @@
 "use client";
 
 import * as React from "react";
-import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "@/lib/utils";
 
-const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 rounded-[var(--radius)] font-semibold text-sm transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:opacity-50 disabled:pointer-events-none select-none",
-  {
-    variants: {
-      variant: {
-        primary:
-          "bg-[var(--primary)] text-white hover:bg-[#15316090] active:scale-[0.98] shadow-sm",
-        accent:
-          "bg-[var(--accent)] text-[#0F1117] hover:bg-[var(--accent-hover)] active:scale-[0.98] font-bold",
-        outline:
-          "border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-card-hover)] active:scale-[0.98]",
-        ghost:
-          "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card-hover)]",
-        danger:
-          "bg-[var(--danger)] text-white hover:bg-red-600 active:scale-[0.98]",
-        success:
-          "bg-[var(--success)] text-white hover:bg-green-600 active:scale-[0.98]",
-      },
-      size: {
-        sm: "h-8 px-3 text-xs",
-        md: "h-10 px-4",
-        lg: "h-12 px-6 text-base",
-        xl: "h-14 px-8 text-lg",
-        icon: "h-10 w-10 p-0",
-      },
-    },
-    defaultVariants: {
-      variant: "primary",
-      size: "md",
-    },
-  }
-);
+export type ButtonVariant = "primary" | "accent" | "outline" | "ghost" | "danger" | "success";
+export type ButtonSize = "sm" | "md" | "lg" | "xl" | "icon";
 
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+const SIZE_STYLES: Record<ButtonSize, React.CSSProperties> = {
+  sm:   { height: "2rem",    padding: "0 0.75rem", fontSize: "0.75rem"  },
+  md:   { height: "2.5rem",  padding: "0 1rem",    fontSize: "0.875rem" },
+  lg:   { height: "3rem",    padding: "0 1.5rem",  fontSize: "1rem"     },
+  xl:   { height: "3.5rem",  padding: "0 2rem",    fontSize: "1.125rem" },
+  icon: { height: "2.5rem",  width: "2.5rem",      padding: "0",        fontSize: "0.875rem" },
+};
+
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
   loading?: boolean;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, loading, children, disabled, ...props }, ref) => {
+  (
+    {
+      variant = "primary",
+      size = "md",
+      loading = false,
+      disabled,
+      children,
+      className,
+      style,
+      ...props
+    },
+    ref
+  ) => {
     return (
       <button
         ref={ref}
-        className={cn(buttonVariants({ variant, size }), className)}
+        className={`btn btn-${variant}${className ? ` ${className}` : ""}`}
+        style={{ ...SIZE_STYLES[size], ...style }}
         disabled={disabled || loading}
         {...props}
       >
         {loading && (
           <svg
-            className="animate-spin h-4 w-4"
+            style={{ width: "1rem", height: "1rem", animation: "spin 1s linear infinite", flexShrink: 0 }}
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
           >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-            />
+            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" style={{ opacity: 0.25 }} />
+            <path fill="currentColor" style={{ opacity: 0.75 }} d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>
         )}
         {children}
@@ -82,4 +60,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
 Button.displayName = "Button";
 
-export { Button, buttonVariants };
+// Keep buttonVariants export for any code that imports it
+export function buttonVariants({ variant = "primary", size = "md" }: { variant?: ButtonVariant; size?: ButtonSize } = {}) {
+  return `btn btn-${variant}`;
+}
+
+export { Button };

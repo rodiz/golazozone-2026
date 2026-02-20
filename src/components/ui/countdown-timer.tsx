@@ -34,11 +34,16 @@ export function CountdownTimer({
   onExpire,
   compact = false,
 }: CountdownTimerProps) {
-  const target = new Date(targetDate);
-  const [timeLeft, setTimeLeft] = useState<TimeLeft>(getTimeLeft(target));
+  const targetTime = new Date(targetDate).getTime();
+  const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [expired, setExpired] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    const target = new Date(targetTime);
+    setTimeLeft(getTimeLeft(target));
+    setMounted(true);
+
     const timer = setInterval(() => {
       const tl = getTimeLeft(target);
       setTimeLeft(tl);
@@ -49,7 +54,11 @@ export function CountdownTimer({
       }
     }, 1000);
     return () => clearInterval(timer);
-  }, [target, onExpire]);
+  }, [targetTime, onExpire]);
+
+  if (!mounted) {
+    return null; // Avoid hydration mismatch by not rendering until mounted
+  }
 
   if (expired) {
     return <span className={cn("text-[var(--danger)] font-semibold text-xs", className)}>Cerrado</span>;
