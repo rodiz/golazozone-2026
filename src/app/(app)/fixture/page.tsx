@@ -2,12 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { LayoutGrid, TableIcon } from "lucide-react";
 import { MatchCard } from "@/components/fixture/match-card";
+import { GroupStandingsTable } from "@/components/fixture/group-standings";
 import { PredictionForm } from "@/components/predictions/prediction-form";
 import type { MatchWithDetails } from "@/types";
 import type { PredictionInput } from "@/lib/validations/prediction";
 
 type Phase = "GROUP_STAGE" | "ROUND_OF_32" | "QUARTER_FINALS" | "SEMI_FINALS" | "THIRD_PLACE" | "FINAL";
+type View  = "matches" | "tabla";
 
 const TABS: { phase: Phase; label: string }[] = [
   { phase: "GROUP_STAGE",    label: "Grupos A-L" },
@@ -29,12 +32,15 @@ const skeletonGrid: React.CSSProperties = {
 export default function FixturePage() {
   const [activePhase, setActivePhase] = useState<Phase>("GROUP_STAGE");
   const [activeGroup, setActiveGroup] = useState("A");
-  const [matches, setMatches] = useState<MatchWithDetails[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [view, setView]               = useState<View>("matches");
+  const [matches, setMatches]         = useState<MatchWithDetails[]>([]);
+  const [loading, setLoading]         = useState(true);
   const [predictingMatch, setPredictingMatch] = useState<MatchWithDetails | null>(null);
 
   useEffect(() => {
     setLoading(true);
+    // Reset to matches view when switching to non-group phase
+    if (activePhase !== "GROUP_STAGE") setView("matches");
     const params = new URLSearchParams({ phase: activePhase });
     if (activePhase === "GROUP_STAGE") params.set("group", activeGroup);
     fetch(`/api/matches?${params}`)
@@ -56,10 +62,14 @@ export default function FixturePage() {
     });
     if (res.ok) {
       const json = await res.json();
-      setMatches((prev) => prev.map((m) => m.id === data.matchId ? { ...m, userPrediction: json.prediction } : m));
+      setMatches((prev) =>
+        prev.map((m) => m.id === data.matchId ? { ...m, userPrediction: json.prediction } : m)
+      );
       setPredictingMatch(null);
     }
   };
+
+  const isGroupStage = activePhase === "GROUP_STAGE";
 
   return (
     <div className="page-stack">
@@ -83,46 +93,97 @@ export default function FixturePage() {
         ))}
       </div>
 
-      {/* Group filter */}
-      {activePhase === "GROUP_STAGE" && (
-        <div className="tabs-scroll">
-          {GROUPS.map((g) => (
+      {/* Group filter + view toggle (GROUP_STAGE only) */}
+      {isGroupStage && (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
+
+          {/* Group letters */}
+          <div className="tabs-scroll" style={{ flex: 1 }}>
+            {GROUPS.map((g) => (
+              <button
+                key={g}
+                onClick={() => setActiveGroup(g)}
+                className={`tab-square ${activeGroup === g ? "active" : "inactive"}`}
+              >
+                {g}
+              </button>
+            ))}
+          </div>
+
+          {/* View toggle */}
+          <div style={{
+            display: "flex", alignItems: "center", gap: "0.25rem",
+            background: "var(--border)", borderRadius: "var(--radius-sm)",
+            padding: "0.25rem", flexShrink: 0,
+          }}>
             <button
-              key={g}
-              onClick={() => setActiveGroup(g)}
-              className={`tab-square ${activeGroup === g ? "active" : "inactive"}`}
+              onClick={() => setView("matches")}
+              title="Vista partidos"
+              style={{
+                display: "flex", alignItems: "center", gap: "0.375rem",
+                padding: "0.375rem 0.75rem", borderRadius: "calc(var(--radius-sm) - 2px)",
+                border: "none", cursor: "pointer",
+                fontSize: "0.8rem", fontWeight: 600,
+                background: view === "matches" ? "var(--bg-card)" : "transparent",
+                color: view === "matches" ? "var(--text-primary)" : "var(--text-muted)",
+                boxShadow: view === "matches" ? "0 1px 3px rgba(0,0,0,0.12)" : "none",
+                transition: "all 0.15s",
+              }}
             >
-              {g}
+              <LayoutGrid size={14} /> Partidos
             </button>
-          ))}
+            <button
+              onClick={() => setView("tabla")}
+              title="Tabla de posiciones"
+              style={{
+                display: "flex", alignItems: "center", gap: "0.375rem",
+                padding: "0.375rem 0.75rem", borderRadius: "calc(var(--radius-sm) - 2px)",
+                border: "none", cursor: "pointer",
+                fontSize: "0.8rem", fontWeight: 600,
+                background: view === "tabla" ? "var(--bg-card)" : "transparent",
+                color: view === "tabla" ? "var(--accent)" : "var(--text-muted)",
+                boxShadow: view === "tabla" ? "0 1px 3px rgba(0,0,0,0.12)" : "none",
+                transition: "all 0.15s",
+              }}
+            >
+              <TableIcon size={14} /> Tabla
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Matches grid */}
+      {/* Content */}
       {loading ? (
         <div style={skeletonGrid}>
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="skeleton" style={{ height: "10rem" }} />
+          {Array.from({ length: view === "tabla" ? 1 : 6 }).map((_, i) => (
+            <div key={i} className="skeleton" style={{ height: view === "tabla" ? "16rem" : "10rem", gridColumn: view === "tabla" ? "1/-1" : undefined }} />
           ))}
         </div>
       ) : (
         <AnimatePresence mode="wait">
           <motion.div
-            key={`${activePhase}-${activeGroup}`}
+            key={`${activePhase}-${activeGroup}-${view}`}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2 }}
-            style={skeletonGrid}
+            transition={{ duration: 0.18 }}
           >
-            {matches.length === 0 ? (
-              <div style={{ gridColumn: "1/-1", textAlign: "center", padding: "4rem 1rem", color: "var(--text-muted)" }}>
-                No hay partidos disponibles para esta fase
-              </div>
+            {/* Standings view */}
+            {view === "tabla" && isGroupStage ? (
+              <GroupStandingsTable matches={matches} />
             ) : (
-              matches.map((match) => (
-                <MatchCard key={match.id} match={match} onPredict={handlePredict} />
-              ))
+              /* Matches grid */
+              matches.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "4rem 1rem", color: "var(--text-muted)" }}>
+                  No hay partidos disponibles para esta fase
+                </div>
+              ) : (
+                <div style={skeletonGrid}>
+                  {matches.map((match) => (
+                    <MatchCard key={match.id} match={match} onPredict={handlePredict} />
+                  ))}
+                </div>
+              )
             )}
           </motion.div>
         </AnimatePresence>
@@ -158,9 +219,9 @@ export default function FixturePage() {
               <PredictionForm
                 match={predictingMatch}
                 existing={predictingMatch.userPrediction ? {
-                  matchId: predictingMatch.id,
-                  homeScore: predictingMatch.userPrediction.homeScore,
-                  awayScore: predictingMatch.userPrediction.awayScore,
+                  matchId:     predictingMatch.id,
+                  homeScore:   predictingMatch.userPrediction.homeScore,
+                  awayScore:   predictingMatch.userPrediction.awayScore,
                   topScorer:   predictingMatch.userPrediction.topScorer   ?? undefined,
                   firstScorer: predictingMatch.userPrediction.firstScorer ?? undefined,
                   mvp:         predictingMatch.userPrediction.mvp         ?? undefined,
