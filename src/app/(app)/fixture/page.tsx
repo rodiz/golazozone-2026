@@ -9,12 +9,13 @@ import { PredictionForm } from "@/components/predictions/prediction-form";
 import type { MatchWithDetails } from "@/types";
 import type { PredictionInput } from "@/lib/validations/prediction";
 
-type Phase = "GROUP_STAGE" | "ROUND_OF_32" | "QUARTER_FINALS" | "SEMI_FINALS" | "THIRD_PLACE" | "FINAL";
+type Phase = "GROUP_STAGE" | "ROUND_OF_32" | "ROUND_OF_16" | "QUARTER_FINALS" | "SEMI_FINALS" | "THIRD_PLACE" | "FINAL";
 type View  = "matches" | "tabla";
 
 const TABS: { phase: Phase; label: string }[] = [
   { phase: "GROUP_STAGE",    label: "Grupos A-L" },
   { phase: "ROUND_OF_32",   label: "16avos" },
+  { phase: "ROUND_OF_16",   label: "Octavos" },
   { phase: "QUARTER_FINALS",label: "Cuartos" },
   { phase: "SEMI_FINALS",   label: "Semis" },
   { phase: "THIRD_PLACE",   label: "3er Puesto" },
@@ -77,7 +78,7 @@ export default function FixturePage() {
       {/* Header */}
       <div>
         <h1 className="font-display font-bold" style={{ fontSize: "1.5rem", color: "var(--text-primary)" }}>Fixture 2026</h1>
-        <p style={{ fontSize: "0.875rem", color: "var(--text-muted)", marginTop: "0.25rem" }}>104 partidos · 12 Grupos · 6 Fases</p>
+        <p style={{ fontSize: "0.875rem", color: "var(--text-muted)", marginTop: "0.25rem" }}>104 partidos · 12 Grupos · 7 Fases</p>
       </div>
 
       {/* Phase tabs */}

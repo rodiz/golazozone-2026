@@ -9,12 +9,13 @@ const prisma = new PrismaClient();
 
 // ── PHASES ──────────────────────────────────────────────────────────────────
 const phases = [
-  { name: "Fase de Grupos", slug: PhaseType.GROUP_STAGE, order: 1, startDate: new Date("2026-06-11"), endDate: new Date("2026-06-27") },
-  { name: "16avos de Final", slug: PhaseType.ROUND_OF_32, order: 2, startDate: new Date("2026-06-28"), endDate: new Date("2026-07-03") },
-  { name: "Cuartos de Final", slug: PhaseType.QUARTER_FINALS, order: 3, startDate: new Date("2026-07-04"), endDate: new Date("2026-07-07") },
-  { name: "Semifinales", slug: PhaseType.SEMI_FINALS, order: 4, startDate: new Date("2026-07-09"), endDate: new Date("2026-07-15") },
-  { name: "Tercer Puesto", slug: PhaseType.THIRD_PLACE, order: 5, startDate: new Date("2026-07-18"), endDate: new Date("2026-07-18") },
-  { name: "Final", slug: PhaseType.FINAL, order: 6, startDate: new Date("2026-07-19"), endDate: new Date("2026-07-19") },
+  { name: "Fase de Grupos",   slug: PhaseType.GROUP_STAGE,    order: 1, startDate: new Date("2026-06-11"), endDate: new Date("2026-06-27") },
+  { name: "16avos de Final",  slug: PhaseType.ROUND_OF_32,    order: 2, startDate: new Date("2026-06-28"), endDate: new Date("2026-07-03") },
+  { name: "Octavos de Final", slug: PhaseType.ROUND_OF_16,    order: 3, startDate: new Date("2026-07-04"), endDate: new Date("2026-07-07") },
+  { name: "Cuartos de Final", slug: PhaseType.QUARTER_FINALS, order: 4, startDate: new Date("2026-07-09"), endDate: new Date("2026-07-11") },
+  { name: "Semifinales",      slug: PhaseType.SEMI_FINALS,    order: 5, startDate: new Date("2026-07-14"), endDate: new Date("2026-07-15") },
+  { name: "Tercer Puesto",    slug: PhaseType.THIRD_PLACE,    order: 6, startDate: new Date("2026-07-18"), endDate: new Date("2026-07-18") },
+  { name: "Final",            slug: PhaseType.FINAL,          order: 7, startDate: new Date("2026-07-19"), endDate: new Date("2026-07-19") },
 ];
 
 // ── GROUPS ──────────────────────────────────────────────────────────────────
@@ -233,20 +234,21 @@ const matchSeeds: MatchSeed[] = [
   { matchNumber: 86, phase: PhaseType.ROUND_OF_32, homeSlot: "1° Grupo C", awaySlot: "3° (A/B/D/F/H)", dateCOT: "2026-07-02T12:00", venue: "Hard Rock Stadium", city: "Miami", country: "EE.UU." },
   { matchNumber: 87, phase: PhaseType.ROUND_OF_32, homeSlot: "2° Grupo D", awaySlot: "2° Grupo G", dateCOT: "2026-07-03T13:00", venue: "AT&T Stadium", city: "Dallas", country: "EE.UU." },
   { matchNumber: 88, phase: PhaseType.ROUND_OF_32, homeSlot: "1° Grupo K", awaySlot: "3° (D/E/I/J/L)", dateCOT: "2026-07-03T12:00", venue: "GEHA Arrowhead Stadium", city: "Kansas City", country: "EE.UU." },
-  // ── QUARTER-FINALS: Jul 4-7 ──────────────────────────────────────────────
-  { matchNumber: 89, phase: PhaseType.QUARTER_FINALS, homeSlot: "W73", awaySlot: "W75", dateCOT: "2026-07-04T11:00", venue: "NRG Stadium", city: "Houston", country: "EE.UU." },
-  { matchNumber: 90, phase: PhaseType.QUARTER_FINALS, homeSlot: "W74", awaySlot: "W77", dateCOT: "2026-07-04T16:00", venue: "Lincoln Financial Field", city: "Filadelfia", country: "EE.UU." },
-  { matchNumber: 91, phase: PhaseType.QUARTER_FINALS, homeSlot: "W76", awaySlot: "W78", dateCOT: "2026-07-05T15:00", venue: "MetLife Stadium", city: "Nueva York/NJ", country: "EE.UU." },
-  { matchNumber: 92, phase: PhaseType.QUARTER_FINALS, homeSlot: "W79", awaySlot: "W80", dateCOT: "2026-07-05T19:00", venue: "Estadio Azteca", city: "Ciudad de México", country: "México" },
-  { matchNumber: 93, phase: PhaseType.QUARTER_FINALS, homeSlot: "W83", awaySlot: "W84", dateCOT: "2026-07-06T14:00", venue: "AT&T Stadium", city: "Dallas", country: "EE.UU." },
-  { matchNumber: 94, phase: PhaseType.QUARTER_FINALS, homeSlot: "W81", awaySlot: "W82", dateCOT: "2026-07-06T19:00", venue: "Lumen Field", city: "Seattle", country: "EE.UU." },
-  { matchNumber: 95, phase: PhaseType.QUARTER_FINALS, homeSlot: "W86", awaySlot: "W88", dateCOT: "2026-07-07T11:00", venue: "Mercedes-Benz Stadium", city: "Atlanta", country: "EE.UU." },
-  { matchNumber: 96, phase: PhaseType.QUARTER_FINALS, homeSlot: "W85", awaySlot: "W87", dateCOT: "2026-07-07T15:00", venue: "BC Place", city: "Vancouver", country: "Canadá" },
-  // ── SEMI-FINALS: Jul 9-15 ────────────────────────────────────────────────
-  { matchNumber: 97, phase: PhaseType.SEMI_FINALS, homeSlot: "W89", awaySlot: "W90", dateCOT: "2026-07-09T15:30", venue: "Gillette Stadium", city: "Boston", country: "EE.UU." },
-  { matchNumber: 98, phase: PhaseType.SEMI_FINALS, homeSlot: "W93", awaySlot: "W94", dateCOT: "2026-07-10T14:00", venue: "SoFi Stadium", city: "Los Ángeles", country: "EE.UU." },
-  { matchNumber: 99, phase: PhaseType.SEMI_FINALS, homeSlot: "W91", awaySlot: "W92", dateCOT: "2026-07-11T16:00", venue: "Hard Rock Stadium", city: "Miami", country: "EE.UU." },
-  { matchNumber: 100, phase: PhaseType.SEMI_FINALS, homeSlot: "W95", awaySlot: "W96", dateCOT: "2026-07-11T20:00", venue: "GEHA Arrowhead Stadium", city: "Kansas City", country: "EE.UU." },
+  // ── ROUND OF 16 (Octavos): Jul 4-7 ──────────────────────────────────────
+  { matchNumber: 89, phase: PhaseType.ROUND_OF_16, homeSlot: "W73", awaySlot: "W75", dateCOT: "2026-07-04T11:00", venue: "NRG Stadium", city: "Houston", country: "EE.UU." },
+  { matchNumber: 90, phase: PhaseType.ROUND_OF_16, homeSlot: "W74", awaySlot: "W77", dateCOT: "2026-07-04T16:00", venue: "Lincoln Financial Field", city: "Filadelfia", country: "EE.UU." },
+  { matchNumber: 91, phase: PhaseType.ROUND_OF_16, homeSlot: "W76", awaySlot: "W78", dateCOT: "2026-07-05T15:00", venue: "MetLife Stadium", city: "Nueva York/NJ", country: "EE.UU." },
+  { matchNumber: 92, phase: PhaseType.ROUND_OF_16, homeSlot: "W79", awaySlot: "W80", dateCOT: "2026-07-05T19:00", venue: "Estadio Azteca", city: "Ciudad de México", country: "México" },
+  { matchNumber: 93, phase: PhaseType.ROUND_OF_16, homeSlot: "W83", awaySlot: "W84", dateCOT: "2026-07-06T14:00", venue: "AT&T Stadium", city: "Dallas", country: "EE.UU." },
+  { matchNumber: 94, phase: PhaseType.ROUND_OF_16, homeSlot: "W81", awaySlot: "W82", dateCOT: "2026-07-06T19:00", venue: "Lumen Field", city: "Seattle", country: "EE.UU." },
+  { matchNumber: 95, phase: PhaseType.ROUND_OF_16, homeSlot: "W86", awaySlot: "W88", dateCOT: "2026-07-07T11:00", venue: "Mercedes-Benz Stadium", city: "Atlanta", country: "EE.UU." },
+  { matchNumber: 96, phase: PhaseType.ROUND_OF_16, homeSlot: "W85", awaySlot: "W87", dateCOT: "2026-07-07T15:00", venue: "BC Place", city: "Vancouver", country: "Canadá" },
+  // ── QUARTER-FINALS (Cuartos): Jul 9-11 ───────────────────────────────────
+  { matchNumber: 97, phase: PhaseType.QUARTER_FINALS, homeSlot: "W89", awaySlot: "W90", dateCOT: "2026-07-09T15:30", venue: "Gillette Stadium", city: "Boston", country: "EE.UU." },
+  { matchNumber: 98, phase: PhaseType.QUARTER_FINALS, homeSlot: "W93", awaySlot: "W94", dateCOT: "2026-07-10T14:00", venue: "SoFi Stadium", city: "Los Ángeles", country: "EE.UU." },
+  { matchNumber: 99, phase: PhaseType.QUARTER_FINALS, homeSlot: "W91", awaySlot: "W92", dateCOT: "2026-07-11T16:00", venue: "Hard Rock Stadium", city: "Miami", country: "EE.UU." },
+  { matchNumber: 100, phase: PhaseType.QUARTER_FINALS, homeSlot: "W95", awaySlot: "W96", dateCOT: "2026-07-11T20:00", venue: "GEHA Arrowhead Stadium", city: "Kansas City", country: "EE.UU." },
+  // ── SEMI-FINALS (Semis): Jul 14-15 ───────────────────────────────────────
   { matchNumber: 101, phase: PhaseType.SEMI_FINALS, homeSlot: "W97", awaySlot: "W98", dateCOT: "2026-07-14T14:00", venue: "AT&T Stadium", city: "Dallas", country: "EE.UU." },
   { matchNumber: 102, phase: PhaseType.SEMI_FINALS, homeSlot: "W99", awaySlot: "W100", dateCOT: "2026-07-15T14:00", venue: "SoFi Stadium", city: "Los Ángeles", country: "EE.UU." },
   // ── THIRD PLACE: Jul 18 ──────────────────────────────────────────────────
